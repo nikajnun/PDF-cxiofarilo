@@ -24,7 +24,7 @@ La unika necesa dosiero estas "PDF ĉiofarilo".
 Je la unua ekfunkciigo, ĝi demandas al vi la lingvon kaj poste kontrolas la necesajn programojn kaj ĝi provas instali ilin.
 Per ĉi tiu metodo, vi elŝutos la lingvajn dosierojn kaj datumbazan dosieron el la retejo nikajnun.org (ĝis mi eltrovas kiel uzi github)
 
-b) INSTALADO uzante nur la ZIP-dosieron
+b) INSTALADO uzante la ZIP-dosieron
 La ZIP-dosiero havas ĉiujn la necesajn dosierojn. Vi ne devos elŝuti ion ajn el la retejo nikajnun.org
 
 
