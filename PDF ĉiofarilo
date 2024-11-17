@@ -1,0 +1,339 @@
+#!/bin/bash
+
+export versio="0.1"; 
+
+# _| pakaĵoj necesaj (komenco) |_______________________
+function necesu(){ . "$tekstbazo" ;
+# - modifieblaj parametroj ----------------------------------------------------------
+pkj=("yad" "sane-utils" "libreoffice" "ocrmypdf" "pdftk" "wmctrl"); # listo de la necesaj pajaĵoj
+pvj=("0" "0" "0" "0" "0" "0"); # la minimuma versio de ĉiu pakaĵo; ekzemple: "10" | "10.5" | "10.14.8" | "0" se ne neceas minimuman version
+psj=("$T_necesaj_yad" "$T_necesaj_sane_utils" "$T_necesaj_libreoffice" "$T_necesaj_ocrmypdf" "$T_necesaj_pdftk" "$T_necesaj_wmctrl"); # priskribo por klarigi por kio necesas la pakajo (nedeviga) | nenia klarigo: ""
+# ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+pko=""; ppo=""; vko=""; vpo=""; pkjj=""; pvjj=""; notify-send -i info -t 4000 "$T_kontrolante_programojn" "$T_atendi"; for (( i=0; i<${#pkj[@]}; i++ )); do  pvo=`aptitude versions ${pkj[$i]} | egrep -o '[0-9].*-[0-9]' `; if (($?!=0)); then  pko="$pko ${pkj[$i]}"; ppo="$ppo \r •<span color='#006' font='11'><b> ${pkj[$i]} </b></span> ${psj[$i]}"; else pvo=${pvo[0]}; pvo=$(cut -f1,2 -d'.' <<< "$pvo"); pvo=$(cut -f1,1 -d' ' <<< "$pvo"); pvo=$(sed 's/^.*\://' <<< "$pvo"); pvo=$(sed 's/ .*$//' <<< "$pvo"); pvo=$(sed 's/\s.*$//' <<< "$pvo"); pvo=$(sed 's/\-.*$//' <<< "$pvo"); pvo=$(sed 's/\+.*$//' <<< "$pvo"); if [ -z ${pvj[$i]} ]; then postulata="0"; else postulata=${pvj[$i]}; fi; if [ "$(printf '%s\n' "$postulata" "$pvo" | sort -V | head -n1)" != "$postulata" ]; then vko="$vko ${pkj[$i]}"; vpo="$vpo \r •<span color='#006' font='11'><b> ${pkj[$i]} </b></span> $F_necesa_versio $postulata | <span color='#666'>$F_aktuala_versio $pvo </span>"; fi; fi; done; if [ "$pko" != "" ]; then pkjj="1"; zenity --question --title="$T_pakajxoj_necesas" --text="<span color='#009' font='13'><b>$F_pakajxoj_necesas</b></span> \r$ppo \r\r$F_cxu_instali" --ok-label="$T_jes" --cancel-label="$T_ne"; if (($?!=0)); then pkjj="1"; zenity --warning --title="$T_ago_fiaskis" --text="$F_elirante_el_programo" --ok-label="$T_fermu"; exit; else  yes | pkexec sh -c "apt-get update && apt-get install $pko "; if (($?!=0)); then pkjj="1"; zenity --question --icon-name="dialog-warning" --title="$T_ago_fiaskis" --text="$F_pakajxoj_neinstalitaj1 \n\n <span color='#090'><b>sudo apt-get install $pko</b></span> \n\n$F_pakajxoj_neinstalitaj2" --ok-label="$T_terminalu" --cancel-label="$T_fermu"; rezulto=$?; if (($rezulto==0)); then pkjj="1"; x-terminal-emulator -e /bin/bash -c "read -p \"$T_terminale_instali\" && sudo apt-get update && sudo apt-get install $pko ; sleep 30"; pkjj=""; else pkjj="1"; exit; fi; else pkjj=""; fi; fi; elif [ "$vpo" != "" ]; then pvjj="1"; zenity --question --title="$T_pakajxoj_ne_gxistatigitaj" --text="$F_pakajxoj_ne_gxistatigitaj1 \r$vpo \r\r$F_pakajxoj_ne_gxistatigitaj2" --ok-label="$T_jes" --cancel-label="$_ne"; if (($?!=0)); then pvjj="1"; zenity --warning --title="$T_ago_fiaskis" --text="$F_gxistatigo_nuligis" --ok-label="$T_fermu"; exit; else yes | pkexec apt-get update ; if (($?!=0)); then zenity --question --icon-name="dialog-warning" --title="$T_ago_fiaskis" --text="$F_gxistatigo_fiaskis1 \n\n <span color='#090'><b>sudo apt-get update</b></span> \n\n $F_gxistatigo_fiaskis2" -ok-label="$T_terminalu" --cancel-label="$T_fermu";  rezulto=$?; if (($rezulto==0)); then x-terminal-emulator -e /bin/bash -c "read -p \"$T_terminale_gxistatigi\" && sudo apt-get update ; sleep 30"; pvjj=""; else pvjj="1"; exit; fi; else pvjj=""; fi; fi; fi; echo "pkjj = $pkjj | pvjj = $pvjj"; if [[ "$pkjj" == "" && "$pvjj" == "" ]]; then  sed -i "s|necesaj\=.*|necesaj='pasis'|g" "$APPdosierujo/datumbazo.conf"; fi;
+};
+# _| pakaĵoj necesaj (fino) |__________________________
+
+
+# _| elekti langvo; elŝuti langva pakajoj (komenco) |_______________________
+function langu(){ kontrolo=$1; retservilo="https://nikajnun.org/pdf-ĉiofarilo"; langvojlisto=""; APPdosierujo=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ); APPdosierujo="$APPdosierujo/PDF-ĉiofarilo"; readarray langvoj <<< `wget -O - "$retservilo/langvoj.php?x=$RANDOM"`; for i in "${!langvoj[@]}"; do langvoo=${langvoj[$i]}; langvoo=${langvoo// / }; langvo=$(sed -E 's|\[([[:alpha:]]{2})\].*|\1|g' <<< $langvoo); if [[ -f "$APPdosierujo/langvo-$langvo.txt" ]]; then langvojlisto="$langvojlisto📁    $langvoo "; else langvojlisto="$langvojlisto🌍    $langvoo "; fi; done; langvoo=$( zenity --list --title="bonvolu elekti langvon" --ok-label="✅ elekti" --cancel-label="❌ nuligi" --text="<span font='14' color='#cc6622'>signifo de la ikonoj</span>\n\n • 📁 lingvabazo disponebla lokale\n • 🌍 lingvabazo elŝutebla el retejo\n" --column="disponeblaj lingvoj" $langvojlisto ); export langvo=$(sed -E 's|^[^\[]*\[([[:alpha:]]{2})\].*$|\1|g' <<< $langvoo); if [[ "$langvo" == "" && $kontrolo == "" ]]; then  exit; else if [[ "$langvoo" == *'🌍'* ]]; then wget -P "$APPdosierujo"  "$retservilo/langvo-$langvo.txt"; fi; sed -i "s|langvo\=.*|langvo='${langvo}'|g" "$APPdosierujo/datumbazo.conf"; fi; langvoo=""; if [[ "$kontrolo" == "1" ]]; then export tekstbazo="$APPdosierujo/langvo-$langvo.txt"; kontrolu ; fi;
+};
+# _| elekti langvo; elŝuti langva pakajoj (fino) |_______________________
+
+
+# _| prevalorigi variablojn |__________________________
+
+doj='DOSgxisdatigu=1;\ndosieroj=('; for doo; do doj="$doj'$doo' "; done; doj="$doj);"; printf "${doj// \)/\)}" > "/tmp/dosieroj.tmp"; # krei 
+export OSRlangvo=""; pasvorto1=""; pasvorto2=""; dosierujonomo=""; dosierujonova=""; forigi="FALSE";
+APPdosierujo=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ); APPdosierujo="$APPdosierujo/PDF-ĉiofarilo";  mkdir -p "$APPdosierujo"; export datumbazo="$APPdosierujo/datumbazo.conf";  
+if [[ ! -f "$datumbazo" ]]; then retservilo="https://nikajnun.org/pdf-ĉiofarilo"; wget -P "$APPdosierujo"  "$retservilo/datumbazo.conf"; fi;
+. "$datumbazo";  if [[ "$langvo" = '' ]]; then langu ; fi; export tekstbazo="$APPdosierujo/langvo-$langvo.txt"; if [[ "$necesaj" = '' ]]; then necesu ; fi;
+
+
+
+
+
+
+# _| YAD uzanta interfaco |__________________________
+function kontrolu(){ . "$datumbazo"; . "$tekstbazo"; 
+# --| OSRlangvoj listo |--------
+OSRlangvoj="$T_neniu_osr"; OSRlangvaro=`tesseract --list-langs`; OSRlangvaro=$(echo $OSRlangvaro | cut -f2 -d:); OSRlangvaro="§${OSRlangvaro// /§}§"; OSRlangvaro="${OSRlangvaro//§§/§}";
+for i in "${!OSRkodoj[@]}"; do if [[ $OSRlangvaro = *"§${OSRkodoj[$i]}§"* ]]; then OSRlangvoj=$OSRlangvoj"![${OSRkodoj[$i]}] ${OSRnomoj[$i]// / }"; fi; done; # for i in "${!OSRkodoj[@]}";
+if [[ $OSRlangvo != "" ]]; then  OSRlangvoj=${OSRlangvoj//"[$OSRlangvo"/"^[$OSRlangvo"}; fi; # jam elektita OSRlangvo
+
+
+# --| favorataj dosierujoj |--------
+dosierujonomoj=""; 
+for ((i=1;i<=100;i++)); do
+eval a=\$dosierujonomo_$i ; eval b=\$dosierujoloko_$i ; eval c=\$dosierujouzanto_$i ; eval d=\$dosierujopasvorto_$i ; # favorataj dosierujoj -- ŝargi liston
+if [[ "$a" == "" ]]; then break; else # favorataj dosierujoj -- fino de la listo
+if [[ "$b" == "smb://"* || "$b" == *"ftp://"* ]]; then curl -l -m 10 "$b" -u "$c:$d" &> /dev/null ; k=$? ; if [[ $k == "0" || $k == "56" ]]; then aa="✅ $a"; elif [[ $k == "9" || $k == "10" || $k == "11" || $k == "12" || $k == "13" || $k == "14" || $k == "67" ]]; then aa="⛔ $a"; else aa="⚠️ $a"; fi;
+elif [[ -d "$b" ]]; then aa="✅ $a"; else aa="⚠️ $a"; fi; 
+if [[ "$a" == "$dosierujonomo" ]]; then dosierujonomoj="$dosierujonomoj!^$aa"; else dosierujonomoj="$dosierujonomoj!$aa" ; fi;
+fi; done; # favorataj dosierujoj -- jam elektita dosierujo
+
+# --| YAD elekti |--------
+sxlosilo=$RANDOM ;
+( while :; do 
+if [ -f "/tmp/dosieroj.tmp" ]; then . /tmp/dosieroj.tmp
+if [[ "$DOSgxisdatigu" = "1" ]]; then echo -e '\f' ; # forigi ĉiun
+for dosiero in "${dosieroj[@]}"; do 
+nomotipo=$(basename -- "$dosiero"); tipo="${nomotipo##*.}"; # ujo=$(realpath $dosiero); ujo=${ujo// /_}; ujo=${ujo//"$nomotipo"/"<b>$nomotipo</b>"};  
+if [[ ${tipo,,} = "pdf" ]]; then ikono="application-pdf"; elif [[ ${tipo,,} = "jpg" || ${tipo,,} = "jpeg" || ${tipo,,} = "png" || ${tipo,,} = "webp" || ${tipo,,} = "gif" || ${tipo,,} = "tif" || ${tipo,,} = "tiff" || ${tipo,,} = "svg" ]]; then ikono="image";
+elif [[ ${tipo,,} = "odt" || ${tipo,,} = "ott" ]]; then ikono="application-vnd.oasis.opendocument.text"; elif [[ ${tipo,,} = "odg" || ${tipo,,} = "otg" ]]; then ikono="application-vnd.oasis.opendocument.drawing"; 
+elif [[ ${tipo,,} = "doc" || ${tipo,,} = "docx" ]]; then ikono="application-vnd.ms-word"; elif [[ ${tipo,,} = "xml" || ${tipo,,} = "xls" || ${tipo,,} = "xlsx" ]]; then ikono="application-vnd.ms-excel"; elif [[ ${tipo,,} = "ppt" || ${tipo,,} = "pptx" ]]; then ikono="application-vnd.ms-powerpoint"; 
+else ikono="unknown"; fi;
+echo "view-reveal-symbolic"; echo "$ikono"; echo "${dosiero// / }";
+done # for dosiero in "${dosieroj[@]}"
+sed -i "s|DOSgxisdatigu\=.*|DOSgxisdatigu=0|g" "/tmp/dosieroj.tmp";
+fi; # if [[ "$DOSgxisdatigu" = "1" ]]
+fi; # if [ ! -f "/tmp/dosieroj.tmp" ];
+ sleep 0.5; done ) | yad --plug="$sxlosilo" --tabnum=1 --separator="§" --image=document --image-on-top --dclick-action="bash -c 'DOSmontru %s'" --list --text="<span font='14' color='#cc6622'>$T_listo_dosieroj</span>\n" --column="$T_malfermu":IMG --column="$T_tipo":IMG --column="$T_dosiero":TEXT & \
+yad --plug="$sxlosilo" --tabnum=2 --dnd --separator="§" --image=file-manager --image-on-top --text="$F_aldoni_dosierojn" | while read DOSpli; do DOSaldonu "$DOSpli"; done & \
+variabloj=$(yad --plug="$sxlosilo" --tabnum=3 --form --separator="⑴" --image=scanner --image-on-top --text="<span font='14' color='#cc6622'>$T_skani_dosierojn</span>" --field="$T_skanilo:CB" "$(IFS=! ; echo "${SKNnomo[*]}")" --field=" $T_gxisdatigi_skanilojn!gtk-refresh:BTN" '@bash -c "SKNgxistatigi"' --field="$T_kolormetodo:CB" "$T_auxtomata!$T_kolorigita!$T_griza!$T_blanka_nigra" --field="$T_brilo:SCL" "50"  --field="$T_kontrasto:SCL" "50" --field="$T_kiom_da_pagxoj:NUM" "0" --field="$T_skaneniro:CB" "$T_elekti_auxtomate!$T_plata_vitro!$T_foliojvoranto!$T_duflanke_foliojvoranto" --field="📝 $T_nomo_de_PDF" "" --field=" $T_aldoni_hodiaux!calendar:BTN" '@bash -c "SKNhodiaux 8 %8"'  --field="$T_skani!scanner:FBTN" '@bash -c "SKNskanu %1 %2 %3 %4 %5 %6 %7 %8"' & \
+yad --plug="$sxlosilo" --tabnum=4 --form --separator="⑵" --image=gnome-settings --image-on-top --field="$F_osr_elekti":LBL ""  --field="$T_osr_elekti":CB "$OSRlangu" --field=" $T_osr_instalu!system-software-package-manager:BTN" '@bash -c "OSRlangu %2"'  --field="$F_pasvorto":LBL "" --field="$T_pasvorto:H" "$pasvorto1"  --field="$T_pasvorto_retajpu:H" "$pasvorto2" --field="$T_kolormetodo_cfmn:CHK" $cfmn  & \
+yad --plug="$sxlosilo" --tabnum=5 --form --separator="⑶" --image=email --image-on-top --text="$F_datumoj_sendanto" --field="$T_nomo:RO" "$RPelNomo"  --field="$T_retposxtadreso:RO" "$RPelAdreso" --field="$T_cxangxu_datumoj_sendanto!email:BTN" '@bash -c "RPsendantu"' --field="$F_datumoj_ricevanto":LBL "" --field="$T_nomo" "$RPalNomo" --field="<b>$T_retposxtadreso*</b>" "$RPalAdreso" --field=" :LBL" "" --field="$T_objekto_mesagxo" "$RPobjekto" --field="$T_teksto_mesagxo:TXT" "$RPmesagxo" --field=" :LBL" "⑶" & \
+yad --plug="$sxlosilo" --tabnum=6 --form  --separator="⑷" --image=system-floppy --image-on-top --text="$F_kunigi_dosierojn" --field=" :LBL" "" --field="$T_kunigi_dosierojn" "$kuniginomo" --field=" $T_aldoni_hodiaux!calendar:BTN" '@bash -c "SKNhodiaux 2 %2"' --field="$F_cela_dosierujo":LBL "" --field="$T_konservi_en_favorata_dosierujo":CBE "$dosierujonomoj" --field="$T_elekti_alian_dosierujon:DIR" "$dosierujonova" --field=" $T_administri_favorataj_dosierujoj!xapp-user-favorites:BTN" '@bash -c "DOSfavoratu"'  --field="\n":LBL "" --field="$T_forigi_dosierojn:CHK" FALSE $forigi --field="$F_favorataj_agordoj":LBL "" --field="$T_favorataj_agordoj":CBE "$agordoj" & \
+yad --notebook --center --key="$sxlosilo" --text="$F_pdf_cxiofarilo" --image=pdfsam --image-on-top --window-icon=pdfsam --width=400 --height=600 --title="PDF ĉiofarilo" --tab="$T_dosieroj!document" --tab="$T_aldoni!file-manager" --tab="$T_skani!scanner" --tab="$T_manipulado!gnome-settings" --tab="$T_email!email" --tab="$T_konservi!system-floppy" --button="$T_langvon_cxangxu:2" --button="$T_nuligu:1" --button="$T_pdf:0" )
+rezulto=$?;
+if(($rezulto==0)); then
+
+rex='⑷✅ '; variabloj=${variabloj//$rex/⑷};
+variabloj=${variabloj// / }; variabloj=$(awk '{printf $1}'<<<$variabloj); 
+#skani
+export sknkolormetodo=$(awk -F'⑴' '{print $3}'<<<$variabloj); export sknbrilo=$(awk -F'⑴' '{print $4}'<<<$variabloj); export sknkontrasto=$(awk -F'⑴' '{print $5}'<<<$variabloj); export sknpagxoj=$(awk -F'⑴' '{print $6}'<<<$variabloj); export skneniro=$(awk -F'⑴' '{print $7}'<<<$variabloj); export sknnomo=$(awk -F'⑴' '{print $8}'<<<$variabloj);
+
+#manipulado
+OSRlangvo=$(awk -F'⑵' '{print $2}'<<<$variabloj); if [[ $OSRlangvo == *"["* ]]; then export OSRlangvo="$(echo $OSRlangvo | sed 's/\].*$//g;s/^.*\[//g')"; else export OSRlangvo=""; fi;
+export pasvorto1=$(awk -F'⑵' '{print $5}'<<<$variabloj); export pasvorto2=$(awk -F'⑵' '{print $6}'<<<$variabloj); export cfmn=$(awk -F'⑵' '{print $7}'<<<$variabloj); 
+
+#email
+export RPalNomo=$(awk -F'⑶' '{print $5}'<<<$variabloj); export RPalAdreso=$(awk -F'⑶' '{print $6}'<<<$variabloj); export RPobjekto=$(awk -F'⑶' '{print $8}'<<<$variabloj); export RPmesagxo=$(awk -F'⑶' '{print $9}'<<<$variabloj);
+
+#konservi
+export kuniginomo=$(awk -F'⑷' '{print $2}'<<<$variabloj); export dosierujonomo=$(awk -F'⑷' '{print $5}'<<<$variabloj); export dosierujonova=$(awk -F'⑷' '{print $6}'<<<$variabloj); export forigi=$(awk -F'⑷' '{print $9}'<<<$variabloj); export agordoj=$(awk -F'⑷' '{print $11}'<<<$variabloj); rex='✅ '; export dosierujonomo=${dosierujonomo//$rex/};
+
+
+
+# --| erarojn kontrolado |--------
+eraroj=""; # xxxxxx yad --text="$variabloj \n------------------  \n  \n kolormetodo = $sknkolormetodo \n brilo = $sknbrilo \n kontrasto = $sknkontrasto \n paĝoj = $sknpagxoj \n eniro = $skneniro \n nomo = $sknnomo \n\n OSRlangvo = $OSRlangvo \n pasvorto1 = $pasvorto1 \n pasvorto2 = $pasvorto2 \n cfmn = $cfmn \n\n RPalNomo = $RPalNomo \n RPalAdreso = $RPalAdreso \n RPobjekto = $RPobjekto \n RPmesagxo = $RPmesagxo \n\n kuniginomo = $kuniginomo \n dosierujonomo = $dosierujonomo \n dosierujonova = $dosierujonova \n forigi = $forigi  \n agordoj = $agordoj"
+if [[ "$pasvorto1" != "$pasvorto2" ]]; then eraroj="$eraroj \n$F_pasvortoj_ne_egalas\n"; fi;
+if [[ $dosierujonomo == ⚠️* ]]; then eraroj="$eraroj \n$F_dosierujo_ne_disponeblas\n<span color='#600'> $dosierujoloko </span>\n$F_dosierujo_ne_disponeblas_kauxzoj\n"; fi;
+if [[ $dosierujonomo == ️️⛔* ]]; then eraroj="$eraroj \n$F_identigo_fiaskis\n<span color='#600'> $dosierujoloko </span>\n$F_identigo_fiaskis_kauxzoj\n"; fi;
+if [[ "$RPalAdreso" != "" && ! "$RPalAdreso" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$ ]]; then eraroj="$eraroj \n$F_erara_retposxtadreso\n";  fi
+if [[ "$eraroj" == "" ]]; then for ((i=1;i<=100;i++)); do eval a=\$dosierujonomo_$i ; if [[ $a == $dosierujonomo ]]; then eval dosierujoloko=\$dosierujoloko_$i; break;  elif [[ "$a" == "" ]] ; then break; fi; done; agadu ; 
+else yad --center --title="$T_ago_malsukcesis" --text="$eraroj"; 
+sed -i "s|DOSgxisdatigu\=.*|DOSgxisdatigu=1|g" "/tmp/dosieroj.tmp"; wait;
+kontrolu ; fi  # [[ "$eraroj" == "" ]] else
+elif(($rezulto==2)); then sed -i "s|DOSgxisdatigu\=.*|DOSgxisdatigu=1|g" "/tmp/dosieroj.tmp"; langu '1' ; fi;
+}; export -f kontrolu;
+
+
+function DOSaldonu(){ 
+. /tmp/dosieroj.tmp; doj="${1##file://}"; sed -i "s|'[)];|' '$doj');|;s|=[(][)];|=('$doj');|;s|DOSgxisdatigu\=.*|DOSgxisdatigu=1|g" "/tmp/dosieroj.tmp";
+}; export -f DOSaldonu;
+
+
+
+# _| aldoni dosierojn de la skanilo |__________________________
+function SKNskanu(){
+. "/tmp/dosieroj.tmp" ; . "$tekstbazo" ; 
+ii=0; for ((i=1;i<=100;i++)); do if [ ! -f "/tmp/SKN$i.pdf" ]; then ii=$i; break; fi; done;
+SKNadr=""; . "$datumbazo" ; for i in "${!SKNnomo[@]}"; do if [[ "${SKNnomo[$i]}" = "$1" ]]; then SKNadr=${SKNadreso[$i]}; break; fi; done # [$1] repreni skanila adreso el skanila nomo
+kolormetodo=""; if [[ "$2" = "$T_kolorigita" ]]; then kolormetodo='--mode Color'; elif [[ "$2" = "$T_griza" ]]; then kolormetodo='--mode Gray'; elif [[ "$2" = "$T_blanka_nigra" ]]; then kolormetodo='--mode Lineart'; fi # [$2] kolorigita aû blanka-nigra
+declare -i b=$3-50;  if [[ "$b" = "0" ]]; then brilo=""; else brilo="--brightness "$b ; fi # [$3]
+declare -i k=$4-50; if [[ "$k" = "0" ]]; then kontrasto=""; else kontrasto="--contrast "$k ; fi # [$4]
+declare -i d=$5; SKNdosieroj="--batch=/tmp/SKN%d.png --batch-start=$ii"; # if [ $d > 1 ]; then  SKNdosieroj='--batch=/tmp/SKN%d.png --batch-count '$d ; fi;  # [$5] unuopa skanado aŭ multobla skanado datumoj al 
+fonto="";  if [[ "$6" = "$T_plata_vitro" ]]; then fonto='--source Flatbed'; elif [[ "$6" = "$T_foliojvoranto" ]]; then fonto='--source ADF';  elif [[ "$6" = "$T_duflanke_foliojvoranto" ]]; then fonto='--source DuplexADF'; fi      # (elekti aŭtomate)!plata vitro!foliojvoranto
+TMPdosiero="${7%.pdf}";
+scanimage -d "$SKNadr" -l 0 -t 0 -x 210 -y 297 $kolormetodo --resolution 300 $SKNdosieroj $fonto ; rezulto=$?; 
+TMPdosieroj=""; doj="";
+
+for ((i=$ii;i<=100;i++)); do if [ -f "/tmp/SKN$i.png" ]; then TMPdosieroj="$TMPdosieroj /tmp/SKN$i.pdf"; magick -quality 95% -background white -page a4 "/tmp/SKN$i.png" "/tmp/SKN$i.pdf"; wait; rm "/tmp/SKN$i.png"; else break; fi; done;
+if [[ "$TMPdosiero" != "" ]]; then sleep 3; pdftk $TMPdosieroj output "/tmp/$TMPdosiero.pdf"; doj=" '/tmp/$TMPdosiero.pdf'"; wait; for ((i=1;i<=100;i++)); do if [ -f "/tmp/SKN$i.pdf" ]; then  rm "/tmp/SKN$i.pdf"; else break; fi; done; # kunigi dosieroj 
+else for ((i=$ii;i<=100;i++)); do  if [ -f "/tmp/SKN$i.pdf" ]; then  doj="$doj '/tmp/SKN$i.pdf'"; else break; fi; done;
+fi; # [[ "$TMPdosiero" != "" ]] else
+sed -i "s|'[)];|'$doj);|;s|=[(][)];|=($doj);|;s|=[(] '|=('|;s|DOSgxisdatigu\=.*|DOSgxisdatigu=1|g" "/tmp/dosieroj.tmp";
+}; export -f SKNskanu
+
+
+
+# _| malfermi dosieron per antaŭdifinita programo |__________________________
+function DOSmontru(){ xdg-open "${1// / }"; }; export -f DOSmontru 
+
+# _| malfermi dosierujon  |__________________________
+function DOSmalfermu(){ . "$tekstbazo" ; if [ -f "/tmp/dosieroj.tmp" ]; then . /tmp/dosieroj.tmp; else dosierujoloko=~; fi; xdg-open "$dosierujoloko" ; k=$?; if [[ $k != "0" && $k == "" ]]; then notify-send -i error -t 4000 "$T_eraro" "$dosierujoloko $T_netrovita ($k)"; fi; }; export -f DOSmalfermu 
+
+
+# _| retpoŝto ŝanĝi la datumojn de la sendanto |__________________________
+function RPsendantu(){ . "$datumbazo" ; . "$tekstbazo" ; 
+RPSyad=$(yad --center --form --separator="§" --window-icon=email --image=email --image-on-top --title="$T_cxangxu_datumoj_sendanto" --text="$F_cxangxu_datumoj_sendanto\n" --field="$T_nomo" "$RPelNomo"  --field="$T_retposxtadreso" "$RPelAdreso" --field="$T_smtp_adreso" "$RPprovizanto" --field="$T_uzantnomo" "$RPuzanto" --field="$T_pasvorto:H" "$RPpasvorto" --field=" $T_kontrolu_la_datumojn!document-send:FBTN" '@bash -c "RPkontrolu %1 %2 %3 %4 %5"' --fore="#fff" --field=":RO" "" --button="❌ nuligi:1" --button="✅ ĉangi:0")
+if [[ $? == 0 ]]; then 
+export RPelNomo=$(awk -F§ '{print $1}' <<<$RPSyad); export RPelAdreso=$(awk -F§ '{print $2}' <<<$RPSyad); export RPprovizanto=$(awk -F§ '{print $3}' <<<$RPSyad); export RPuzanto=$(awk -F§ '{print $4}' <<<$RPSyad); export RPpasvorto=$(awk -F§ '{print $5}' <<<$RPSyad);
+sed -i "s|\([\"\')]+\)[ ]*;[ ]*\([a-zA-Z0-9 ]+\)|\1;\n\2|g" "$datumbazo"; sed -i -r ':a;N;$!ba;s/\n{3,}/\n\n/g' "$datumbazo"; sed -i "s|^RPelNomo\=.*|RPelNomo='$RPelNomo';|g;s|^RPelAdreso\=.*|RPelAdreso='$RPelAdreso';|g;s|^RPprovizanto\=.*|RPprovizanto='$RPprovizanto';|g;s|^RPuzanto\=.*|RPuzanto='$RPuzanto';|g;s|^RPpasvorto\=.*|RPpasvorto='$RPpasvorto';|" "$datumbazo"
+echo "1:$RPelNomo"; echo "2:$RPelAdreso";
+fi #if [[ $? == 0 ]]; then 
+};export -f RPsendantu 
+
+# _| kontroli la validecon de la dosierujo |__________________________
+function DOStestu(){ IFS='§'; a=${2// / }; b=$3; c=$4; d=""; if [ "$5" == '✽✽✽✽✽' ]; then d="$6"; else d="$5"; fi; # 2 nomo 3 ligilo 4 uzanto 5 pasvorto	
+. "$tekstbazo" ;  iko="❔"; kodo="io ne funkciis";
+if [[ "$b" == "smb://"* || "$b" == *"ftp://"* ]]; then curl -l -m 10 "$b" -u "$c:$d" &> /dev/null ; k=$? ; 
+eval kodo=\$E_curl_$k; 
+if [[ $k == "0" || $k == "56" ]]; then iko="✅"; kodo="✅ dosiero disponebla"; 
+elif [[ $k == "9" || $k == "10" || $k == "11" || $k == "12" || $k == "13" || $k == "14" || $k == "67" ]]; then iko="⛔"; kodo="⛔ ($k) $kodo"; 
+else iko="⚠️"; kodo="⚠️ ($k) $kodo";  
+fi; # favorataj dosierujoj -- servila dosierujo ne disponebla
+elif [[ ! -d "$b" ]]; then iko="⚠️"; kodo="⚠️ dosiero netrovita"; else iko="✅"; kodo="✅ dosiero disponebla"; fi;  # favorataj dosierujoj -- lokala dosierujo ne disponebla
+notify-send -t 1000 "$kodo";
+dd=""; if [[ $d != '' ]]; then dd='✽✽✽✽✽'; fi; 
+echo -e "$iko\n$a\n$b\n$c\n$dd\n$d";
+ }; export -f DOStestu
+
+
+# _| administri la liston de la favorataj dosierujoj |__________________________
+function DOSfavoratu(){ . "$datumbazo" ; . "$tekstbazo" ;
+( for ((i=1;i<=100;i++)); do eval a=\$dosierujonomo_$i ; eval b=\$dosierujoloko_$i ; eval c=\$dosierujouzanto_$i ; eval d=\$dosierujopasvorto_$i ;
+if [[ "$a" != "" ]]; then
+if [[ "$b" == "smb://"* || "$b" == *"ftp://"* ]]; then curl -l -m 10 "$b" -u "$c:$d" &> /dev/null ; k=$? ; if [[ $k == "0" || $k == "56" ]]; then echo "✅";  elif [[ $k == "9" || $k == "10" || $k == "11" || $k == "12" || $k == "13" || $k == "14" || $k == "67" ]]; then echo "⛔"; else echo "⚠️"; fi; # favorataj dosierujoj 
+elif [[ ! -d "$b" ]]; then echo "⚠️"; else echo "✅"; fi; # favorataj dosierujoj -- lokala dosierujo ne disponebla
+echo "$a"; echo "$b"; echo "$c"; if [[ "$d" != "" ]]; then echo "✽✽✽✽✽"; else echo ""; fi; echo "$d";
+fi; done;
+) | yad --list --print-all --editable --editable-cols="2,3,4,5" --limit=99 --title="plej ŝatataj dosierujoj" --image=xapp-user-favorites --window-icon=xapp-user-favorites --image-on-top --separator="§" --dclick-action='@bash -c "DOStestu %s"' --width=650 --height=500 --text="$F_administri_favoratajn_dosierujojn" --column="$T_ikono":TEXT --column="$T_ligila_nomo":TEXT  --column="$T_adreso":TEXT --column="$T_uzantnomo":TEXT --column="$T_pasvorto":TEXT --column="pas":HD  --button="$T_nuligu:1" --button="$T_konservu:0" > /tmp/DOSfavorataj.tmp
+if(($?==0)); then sed -i "s|\([\"\')]+\)[ ]*;[ ]*\([a-zA-Z0-9 ]+\)|\1;\n\2|g" "$datumbazo"; sed -i -r ':a;N;$!ba;s/\n{3,}/\n\n/g' "$datumbazo";
+for ((i=1;i<=100;i++)); do  sed -i "s|^dosierujonomo_$i\=.*||g;s|^dosierujoloko_$i\=.*||g;s|^dosierujouzanto_$i\=.*||g;s|^dosierujopasvorto_$i\=.*||g" "$datumbazo"; sed -i "s|\([\"\')]+\)[ ]*;[ ]*\([a-zA-Z0-9 ]+\)|\1;\n\2|g" "$datumbazo"; sed -i -r ':a;N;$!ba;s/\n{3,}/\n\n/g' "$datumbazo"; done;
+
+readarray variabloj < "/tmp/DOSfavorataj.tmp"; dosierujonomoj=""; ii=0; v="\n";
+for i in "${!variabloj[@]}"; do
+iko=$(awk -F'§' '{print $1}'<<<${variabloj[$i]});
+dosierujonomo=$(awk -F'§' '{print $2}'<<<${variabloj[$i]}); if [[ $dosierujonomo == "(null)" ]]; then dosierujonomo=""; fi; dosierujonomo=${dosierujonomo// / }; dosierujonomo=${dosierujonomo//\'/ʹ};
+dosierujoloko=$(awk -F'§' '{print $3}'<<<${variabloj[$i]}); if [[ $dosierujoloko == "(null)" ]]; then dosierujoloko=""; fi;
+dosierujouzanto=$(awk -F'§' '{print $4}'<<<${variabloj[$i]}); if [[ $dosierujouzanto == "(null)" ]]; then dosierujouzanto=""; fi;
+dosierujopasvorto=$(awk -F'§' '{print $5}'<<<${variabloj[$i]}); if [[ $dosierujopasvorto == "(null)" ]]; then dosierujopasvorto=""; elif [[ $dosierujopasvorto == "✽✽✽✽✽" ]]; then dosierujopasvorto=$(awk -F'§' '{print $6}'<<<${variabloj[$i]}); fi;
+if [[ $dosierujonomo != "" && $dosierujoloko != "" ]]; then ((ii++)); 
+dosierujonomoj="$dosierujonomoj!$iko $dosierujonomo"; # listo por la kampo: 💾 konservi en la favorata dosierujo
+v="$v\ndosierujonomo_$ii='$dosierujonomo'; \ndosierujoloko_$ii='$dosierujoloko'; \ndosierujouzanto_$ii='$dosierujouzanto'; \ndosierujopasvorto_$ii='$dosierujopasvorto'; \n"; # listo por la dosiero: PDF ĉiofarilo.comf
+fi; done;
+echo -e "\n$v" >> "$datumbazo"; sed -i "s|\([\"\')]+\)[ ]*;[ ]*\([a-zA-Z0-9 ]+\)|\1;\n\2|g" "$datumbazo"; sed -i -r ':a;N;$!ba;s/\n{3,}/\n\n/g' "$datumbazo"; rm /tmp/DOSfavorataj.tmp ; echo "5:$dosierujonomoj"; fi;
+}; export -f DOSfavoratu
+
+# _| retpoŝto kontroli la datumojn de la sendanto |__________________________
+function RPkontrolu(){ . "$tekstbazo" ; RPtestuzanto=$4":"$5; RPtestmesagxo="From: $1 <$2>\r\nTo: $1 <$2>\r\nSubject: $T_senda_testo\r\nDate: $(date '+%a %d %b %Y %H:%M:%S')\r\n$F_senda_testo\r\n"
+echo "7:$T_atendi" & curl -v $3 --user $RPtestuzanto --ssl --mail-from $2 --mail-rcpt $2 --upload-file <(echo -e "$RPtestmesagxo"); e=$? ; wait; if [[ $e = "0" || $e = "" ]]; then echo "7:$T_senda_testo_sukcesis"; else echo "7:$T_senda_testo_fiaskis ($e)"; eval "eraro=\$E_curl_$e"; if [[ "$eraro" != "" ]] ; then notify-send -i error -t 4000 "$T_eraro ($e):" "$eraro"; fi; fi;
+}; export -f RPkontrolu
+
+
+
+
+# _| aldoni la daton al la nomo de la unigita dosiero.pdf |__________________________
+function SKNhodiaux(){ echo -e "$1:$(date '+%Y-%m-%d')_$2"; }; export -f SKNhodiaux
+
+
+
+
+# _| ĝisdatigi liston de la skaniloj |__________________________
+function SKNgxistatigi(){ . "$tekstbazo" ; 
+( for ((i=1; i<=99; i++)) { echo $i; sleep 0.4;} & SKNnomo="SKNnomo=("; SKNadreso="SKNadreso=("; SKNlisto="'"; IFS=$'!'; skaniloj=( $(scanimage -f "%d§%m§%v!") );
+for i in ${!skaniloj[@]}; do
+SKNadr=$(awk -F§ '{print $1}' <<<${skaniloj[$i]}); SKNadreso=$SKNadreso"'$SKNadr' ";
+SKNnom=$(awk -F§ '{print $2}' <<<${skaniloj[$i]}); SKNnom=$SKNnom" ("$(awk -F§ '{print $3}' <<<${skaniloj[$i]})")"; SKNnom=${SKNnom// / }; SKNnomo=$SKNnomo"'$SKNnom' "; SKNlisto="$SKNlisto$SKNnom!";
+done; SKNnomo=$SKNnomo");";SKNadreso=$SKNadreso");"; 
+sed -i "s|\([\"\')]+\)[ ]*;[ ]*\([a-zA-Z0-9 ]+\)|\1;\n\2|g" "$datumbazo"; sed -i -r ':a;N;$!ba;s/\n{3,}/\n\n/g' "$datumbazo";
+sed -i "s|^SKNnomo\=.*|${SKNnomo}|g;s|^SKNadreso\=.*|${SKNadreso}|g" "$datumbazo"; echo $? ; echo "$SKNadreso"; sed -i "s|\([\"\')]+\)[ ]*;[ ]*\([a-zA-Z0-9 ]+\)|\1;\n\2|g" "$datumbazo"; sed -i -r ':a;N;$!ba;s/\n{3,}/\n\n/g' "$datumbazo";
+printf "SKNlisto=$SKNlisto'" > "/tmp/SKNlisto.tmp"
+echo 100; ) | yad --center --progress --window-icon=gtk-refresh --image=gtk-refresh --title="$T_gxisdatigi_skanilojn" --text="$F_gxisdatigi_skanilojn" --progress-text="$T_atendi" --button="$T_fermu:1" --auto-close --auto-kill 
+if [[ $? == 0 ]]; then . /tmp/SKNlisto.tmp . "$SKNlisto";  rm "/tmp/SKNlisto.tmp"; echo -e "1:$SKNlisto"; fi;
+}; export -f SKNgxistatigi
+
+
+
+
+
+# _| redaktado de la dosierojn |__________________________
+function agadu(){ (
+. /tmp/dosieroj.tmp ; . "$datumbazo" ; . "$tekstbazo" ;
+dosierujouzanto=''; dosierujopasvorto=''; for ((i=1;i<=100;i++)); do eval lok=\$dosierujoloko_$i ; if [[ $lok == $dosierujoloko ]]; then eval dosierujouzanto=\$dosierujouzanto_$i; eval dosierujopasvorto=\$dosierujopasvorto_$i; break; elif [[ "$lok" == "" ]] ; then break; fi; done;
+rex='✅ '; dosierujonomo="${dosierujonomo//$rex/}"; rex='⛔ ';  dosierujonomo="${dosierujonomo//$rex/}";  rex='⚠️ '; dosierujonomo="${dosierujonomo//$rex/}"; dosierujoloko="${dosierujoloko// / }";  # purigas la nomon de la favorata dosierujo
+# --| rekuperi la lokon de la favorata dosierujo |--------
+if [[ "$dosierujoloko" == "" ]]; then dosierujoloko=${dosierujonova// / }; # neniu favorata dosierujo
+if [[ "$dosierujoloko" == *"smb-share:server"* ]]; then dosierujoloko="${dosierujoloko/\,share\=//}"; dosierujoloko="$(echo $dosierujoloko | sed 's/.*=/smb\:\/\//')"; fi; # plibonigi dosierujan adreson por SMB
+if [[ "$dosierujonomo" != "" ]] ; then echo -e "\ndosierujonomo_$i='$dosierujonomo';\ndosierujoloko_$i='$dosierujoloko';\ndosierujouzanto_$i='';\ndosierujopasvorto_$i='';" >> "$datumbazo" ; fi; # konservi dosierujon en la favorataj
+fi; # if [[ "$dosierujoloko" == "" ]]
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); tipo="${nomotipo##*.}"; nomo="${nomotipo%.*}"; nomo="${nomo// / }"; echo "👉 $T_dosiero: $nomotipo 👈";
+# --| konverti en PDF / movi al TMP |--------
+
+if [[ ${tipo,,} = "pdf" ]]; then  cp "$dosiero" "/tmp/$nomo.pdf" ; wait; echo "$T_dosiero_adekvata" ; 
+else soffice --headless --convert-to pdf "$dosiero" --outdir /tmp/ ; e=$? wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_dosiero_konvertita_sukcesis"; else echo "ST_dosiero_konvertita_fiaskis $nomotipo ➜ $nomo.pdf ($e)"; fi;
+fi # [[ ${tipo,,} = "pdf" ]] else
+
+# --| konverti en OSR |--------
+if [[ "$OSRlangvo" != "" ]]; then echo "$T_osr_rekonante"; ocrmypdf -l "$OSRlangvo" "/tmp/$nomo.pdf" "/tmp/$nomo.pdf" --skip-text ; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_osr_sukcesis"; else echo "$T_osr_problemoj1 $nomotipo ($e). $T_osr_problemoj2"; 
+ocrmypdf -l "$OSRlangvo" "/tmp/$nomo.pdf" "/tmp/$nomo.pdf" --image-dpi=300 --jpeg-quality=95 --skip-text ; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_osr_sukcesis"; else  echo "️$T_osr_fiaskis: $nomotipo ($e)"; fi; fi;
+fi; # kun OSR
+done; # for dosiero in "${dosieroj[@]}"
+
+# --| kunigi PDF |--------
+if [[ "$kuniginomo" != "" ]]; then TMPdosieroj=""; echo "$T_kunigante_dosierojn"; if [[ "$kuniginomo" != *".pdf" ]]; then kuniginomo="$kuniginomo.pdf"; fi;
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); nomo="${nomotipo%.*}";  nomo="${nomo// / }"; TMPdosieroj="$TMPdosieroj /tmp/$nomo.pdf"; done # IFS='§'; 
+gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile="/tmp/$kuniginomo" $TMPdosieroj ; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "✅ dosieroj sukcese kunigitaj el: $kuniginomo"; 
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); nomo="${nomotipo%.*}";  nomo="${nomo// / }"; rm "/tmp/$nomo.pdf"; if [[ "$forigi" == "TRUE" && "$dosiero" != "dosierujoloko_$i/$nomo.pdf" ]] ; then rm "$dosiero"; fi done # forigi portempajn dosierojn | forigi originalajn dosierojn
+unset $dosieroj; export dosieroj=(); dosieroj[1]="$kuniginomo";
+printf "DOSgxisdatigu=1;\ndosieroj=('"$kuniginomo"');\n" > "/tmp/dosieroj.tmp";
+else echo "️$T_kunigi_dosierojn_fiaskis $kuniginomo ($e)"; fi; # if [[ $e = "0" || $e = "" ]]
+fi # if [ "$kuniginomo" != "" ]];
+
+
+# --| CFMN (Cejana Flava Magenta Nigra kolormodelo) |--------
+if [[ "$cfmn" == "TRUE" ]]; then
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); tipo="${nomotipo##*.}"; nomo="${nomotipo%.*}"; nomo="${nomo// / }"; echo "👉 $T_dosiero: $nomotipo 👈";
+gs -q -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile="/tmp/$nomo"_CFMN."pdf" "/tmp/$nomo.pdf"; e=$?; wait; 
+if [[ $e = "0" || $e = "" ]]; then  cp "/tmp/$nomo"_CFMN."pdf" "/tmp/$nomo.pdf"; rm "/tmp/$nomo"_CFMN."pdf";  echo "$T_cfmn_sukcesis"; else  echo "️$T_cfmn_fiaskis $nomotipo ($e)"; fi;
+done # for dosiero in "${dosieroj[@]}"
+fi; # if [[ "$cfmn" == "TRUE" ]]
+
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); tipo="${nomotipo##*.}"; nomo="${nomotipo%.*}";  nomo="${nomo// / }";
+
+# --| protekti per pasvorto |--------
+if [[ "$pasvorto1" != "" ]]; then  echo "$T_protektante $nomotipo"; pdftk "/tmp/$nomo.pdf" output "/tmp/$nomo.x.pdf" user_pw "$pasvorto1"; mv "/tmp/$nomo.x.pdf" "/tmp/$nomo.pdf"; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_protekto_sukcesis"; else echo "️$T_protekto_fiaskis $nomo.pdf ($e)"; fi; wait;  fi # kun pasvorto
+
+# --| movi al la cela dosierujo |--------
+if [ ! -f "/tmp/$nomo.pdf" ]; then  echo "$T_provizora_dosiero_netrovita /tmp/$nomo.pdf";  else
+if [[ "$dosierujoloko" == "" ]]; then dosierujoloko=$(readlink -f "$dosiero"); dosierujoloko="${dosierujoloko%/*}"; dosierujoapp=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ); if [[ "$dosierujoloko" == "$dosierujoapp" || "$dosierujoloko" == "/tmp" ]]; then dosierujoloko=~; fi; # dosiero al la fonta dosierujo (1) se neniu cela dosierujo estis elektita, provu eltrovi la fontan dosierujon, alie elektu la hejmon
+  cp "/tmp/$nomo.pdf" "$dosierujoloko/$nomo.pdf"; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_pdf_sukcesis"; echo "$dosierujoloko/$nomo.pdf"; else echo "$T_pdf_fiaskis ($e)"; fi; # dosiero al la fonta dosierujo (2)
+elif [[ $dosierujoloko == "smb://"* || "$b" == *"ftp://"* ]]; then echo "$T_movante_al_servilo"; curl --upload-file "/tmp/$nomo.pdf" -u "$dosierujouzanto:$dosierujopasvorto" "$dosierujoloko/"; e=$? ; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_movante_al_servilo_sukcesis"; echo "$dosierujoloko/$nomo.pdf"; else echo "️$T_movante_al_servilo_fiaskis $nomo.pdf  ($e)"; eval "eraro=\$E_curl_$e"; if [[ "$eraro" != "" ]] ; then notify-send -i error -t 4000 "$T_eraro ($e):" "$eraro"; fi; fi; # dosiero en la servilo SMB / FTP
+else echo "$T_movante"; cp "/tmp/$nomo.pdf" "$dosierujoloko/$nomo.pdf";  e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_movante_sukcesis:"; echo "$dosierujoloko/$nomo.pdf"; else echo "$T_movante_fiaskis ($e)"; # dosiero al la destina dosierujo
+echo "$T_movante_al_hejmo"; export dosierujoloko=~; cp "/tmp/$nomo.pdf" "$dosierujoloko/$nomo.pdf"; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_movante_sukcesis:"; echo "$dosierujoloko/$nomo.pdf"; else echo "️$T_movante_al_hejmo_fiaskis ($e)"; fi; # plano B: hejma dosierujo
+fi; fi # dosiero en alia dosierujo
+fi;
+
+done # for dosiero in "${dosieroj[@]}"
+
+# --| RP sendi al retpoŝtadreso |--------
+if [[ "$RPalAdreso" != "" ]]; then echo "👉 $T_sendante_retposxto $RPalAdreso 👈"; RPkunsenditaj=''; 
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); nomo="${nomotipo%.*}"; nomo="${nomo// / }"; if [ -f "/tmp/$nomo.pdf" ]; then RPkunsenditaj=$RPkunsenditaj" -F 'file=@/tmp/$nomo.pdf;type="`file --mime-type "/tmp/$nomo.pdf" | sed "s/.*: //"`";encoder=base64'"; fi; done;
+eval "curl -v --url $RPprovizanto --ssl --mail-from $RPelAdreso --mail-rcpt $RPalAdreso --user $RPuzanto:$RPpasvorto -F '=(;type=multipart/mixed' -F '=$RPmesagxo;type=text/plain' $RPkunsenditaj -F '=)' -H  'Subject: $RPobjekto' -H 'From: $RPelNomo <$RPelAdreso>' -H 'To: $RPalNomo <$RPalAdreso>'"; e=$?; wait; if [[ $e = "0" || $e = "" ]]; then echo "$T_sendante_retposxto_sukcesis"; else echo "$T_sendante_retposxto_fiaskis ($e)"; eval "eraro=\$E_curl_$e"; if [[ "$eraro" != "" ]] ; then notify-send -i error -t 4000 "$T_eraro ($e):" "$eraro"; fi; fi;
+fi # dosiero al retpoŝto
+
+# --| forigi provizorajn dosierojn |--------
+for dosiero in "${dosieroj[@]}"; do nomotipo=$(basename -- "$dosiero"); nomo="${nomotipo%.*}"; nomo="${nomo// / }";
+if [ -f "/tmp/$nomo.pdf" ]; then rm "/tmp/$nomo.pdf"; fi; # forigi portempajn dosierojn
+if [[ "$forigi" == "TRUE" && "$dosiero" != "dosierujoloko_$i/$nomo.pdf" && "$kuniginomo" == "" && -f "$dosiero" ]] ; then rm "$dosiero"; fi # forigi originalajn dosierojn
+done # for dosiero in "${dosieroj[@]}"
+echo " "; echo "$T_procezado_kompletigita";
+printf "dosierujoloko='$dosierujoloko'" >> "/tmp/dosieroj.tmp";
+) | yad --center --width=500 --height=300 --image="process-working-symbolic" --window-icon="process-working-symbolic" --title="$t_procesante" --text="\n$F_procesante\n" --fore="#fff" --back="#000" --text-info --tail --listen --monitor --button="$T_malfermu_celan_dosierujon":'bash -c "DOSmalfermu"' --button="$T_tasku_denove:2" --button="$T_fermu:0"
+rezulto=$?; if [ -f "/tmp/dosieroj.tmp" ]; then rm "/tmp/dosieroj.tmp"; fi; # forigi liston de dosieroj
+if(($rezulto==2)); then doj='DOSgxisdatigu=1;\ndosieroj=('; printf "DOSgxisdatigu=1;\ndosieroj=();" > "/tmp/dosieroj.tmp"; kontrolu ;  fi;
+}; export -f agadu;
+
+
+
+# _| manipulado de la OSRlangvaj vortprovizoj |__________________________
+function OSRlangu(){ . "$datumbazo" ; . "$tekstbazo" ; OSRlangvo=$1; if [[ $OSRlangvo == *"["* ]]; then export OSRlangvo="$(echo $OSRlangvo | sed 's/\].*$//g;s/^.*\[//g')"; else export OSRlangvo=""; fi;  
+listo="";  OSRlangvaro=`tesseract --list-langs`; OSRlangvaro=$(echo $OSRlangvaro | cut -f2 -d:);
+OSRlangvaro="§${OSRlangvaro// /§}§"; OSRlangvaro="${OSRlangvaro//§§/§}"; # listo de vortprovizoj instalitaj
+for i in "${!OSRkodoj[@]}"; do if [[ $OSRlangvaro = *"§${OSRkodoj[$i]}§"* ]]; then listo=$listo" TRUE"; else listo=$listo" FALSE"; fi # YAD elektu vortprovizoj instalitaj [TRUE]
+listo=$listo" ${OSRkodoj[$i]} ${OSRnomoj[$i]// / }"; if [ -z ${OSRnomoj_epo[$i]+x} ]; then listo=$listo"  "; else  listo=$listo" '${OSRnomoj_epo[$i]// / }'"; fi; # YAD kodoj | endonimoj | EPOnomoj
+done; # for i in "${!OSRkodoj[@]}";
+OSRagadi=$(yad --center --separator="§" --list --checklist --window-icon=system-software-package-manager --image=system-software-package-manager --image-on-top --width=350 --height=500 --title="$T_osr_instalu" --text="$F_osr_instalu" --column="instali":CHK --column="":HD  --column="lingvo (endonima)":TEXT  --column="lingvo (Esperanto)":TEXT $listo  --button="$T_nuligu:1" --button="$T_rigardu:0")
+if [ $? -eq 0 ]; then 
+elektita=$(awk -F§ '{print $1}' <<<$OSRagadi); OSRlangvu=($(awk -F§ '{print $2}' <<<$OSRagadi)); OSRlangvunomo=($(awk -F§ '{print $3}' <<<$OSRagadi));  instalu=""; malinstalu="" instaluteksto=""; malinstaluteksto=""; malOSRlangvaro="§"; IFS="§" read -a malOSRlangvu <<< $OSRlangvaro;
+for i in "${!OSRlangvu[@]}"; do malOSRlangvaro="$malOSRlangvaro${OSRlangvu[$i]}§"; if ! grep -q "§${OSRlangvu[$i]}§" <<< "$OSRlangvaro"; then instalu="$instalu tesseract-ocr-${OSRlangvu[$i]}";  instaluteksto="$instaluteksto \n •  ${OSRlangvunomo[$i]// / }"; fi; done;
+for i in "${!malOSRlangvu[@]}"; do if [ "${malOSRlangvu[$i]}" != "" ] && ! grep -q "§${malOSRlangvu[$i]}§" <<< "$malOSRlangvaro" ; then malinstalu="$malinstalu tesseract-ocr-${malOSRlangvu[$i]}"; 
+iinomo="${malOSRlangvu[$i]}"; for ii in "${!OSRkodoj[@]}"; do if [[ "${OSRkodoj[$ii]}" = "${malOSRlangvu[$i]}" ]]; then iinomo="${OSRnomoj[$ii]}" && break; fi done; malinstaluteksto="$malinstaluteksto \n •  ${iinomo// / }"; fi; done;
+if [ "$malinstaluteksto" != "" ]; then malinstaluteksto="\n$F_osr_malinstallisto $malinstaluteksto"; else malinstaluteksto="\n$F_osr_installisto_neniu\n"; fi; # malinstali
+if [ "$instaluteksto" != "" ]; then instaluteksto="\n$F_osr_installisto $instaluteksto"; else instaluteksto="\n$F_osr_installisto_neniu\n"; fi; # instali
+
+yad --center --window-icon=system-software-package-manager --image=system-software-package-manager --title="$T_rigardu" --text="$instaluteksto\n$malinstaluteksto\n" --button="$T_nuligu:1" --button="$T_instalu:0" 
+if [ $? -eq 0 ]; then 
+if [ "$instalu" != "" ]; then yes | pkexec apt install $instalu ; wait; fi;
+if [ "$malinstalu" != "" ]; then yes | pkexec apt remove $malinstalu ; wait; fi;
+fi;fi; # if [ $? -eq 0 ];
+
+# --| OSRlangvoj listo |--------
+OSRlangvoj="(neniu OSR rekono)"; OSRlangvaro=`tesseract --list-langs`; OSRlangvaro=$(echo $OSRlangvaro | cut -f2 -d:); OSRlangvaro="§${OSRlangvaro// /§}§"; OSRlangvaro="${OSRlangvaro//§§/§}";
+for i in "${!OSRkodoj[@]}"; do if [[ $OSRlangvaro = *"§${OSRkodoj[$i]}§"* ]]; then OSRlangvoj=$OSRlangvoj"![${OSRkodoj[$i]}] ${OSRnomoj[$i]// / }"; fi; done; # for i in "${!OSRkodoj[@]}";
+if [[ $OSRlangvo != "" ]]; then OSRlangvoj=${OSRlangvoj//"[$OSRlangvo"/"^[$OSRlangvo"}; fi; # jam elektita OSRlangvo
+echo -e "2:$OSRlangvoj";
+}; export -f OSRlangu;
+
+kontrolu
