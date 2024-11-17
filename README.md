@@ -14,14 +14,19 @@ Estas traduktebla en ĉiuj lingvoj.
 OPERACIUMO:
 Linux Debian (testita sur Linux Mint) 
 
-INSTALADO:
-La unua necesa dosiero estas "PDF ĉiofarilo".
+a) INSTALADO uzante nur la dokumenton "PDF ĉiofarilo"
+La unika necesa dosiero estas "PDF ĉiofarilo".
 
 1) Movi PDF ĉiofarilo al la dosierujo "scripts" de Nautilus aŭ Nemo. Eksample:
 ~/.local/share/nemo/scripts
 2) Ebligi ekzekutajn permesojn
 
 Je la unua ekfunkciigo, ĝi demandas al vi la lingvon kaj poste kontrolas la necesajn programojn kaj ĝi provas instali ilin.
+Per ĉi tiu metodo, vi elŝutos la lingvajn dosierojn kaj datumbazan dosieron el la retejo nikajnun.org (ĝis mi eltrovas kiel uzi github)
+
+b) INSTALADO uzante nur la ZIP-dosieron
+La ZIP-dosiero havas ĉiujn la necesajn dosierojn. Vi ne devos elŝuti ion ajn el la retejo nikajnun.org
+
 
 La programa versio estas 0.1 Beta.
 erŝajne estas ankoraŭ multaj eraroj.
@@ -37,3 +42,5 @@ DEPENDENCOJ (necesaj pakajoj):
 - wmctrl
 
   Mi ne parolas la anglan lingvon. Mi bedauras.
+
+  
