@@ -36,11 +36,21 @@ DEPENDENCOJ (necesaj pakajoj):
 
 - YAD
 - sane-utils
-- libreoffice (soffice)
+- libreoffice
 - ocrmypdf
 - pdftk
 - wmctrl
 
+ERAROJ
+- lingvu() la unua fojo ne ĉhangas la lingvon
+- instali necesaj pakaĵoj: libreoffice eĉ se instalita, ne estas rekonita
+
+POR FARI - PLIBONIGI
+- instali necesaj pakaĵoj: kontrolas nun DEB | neniu FlatPak aû AppImage :-(
+- favoritaj agordoj
+- tradukado de dokumentoj
+- identigaj modeloj de dokumentoj
+- indeksa datumbazo de dokumentoj
 
   
 ![tablo de la informoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/info.png)
