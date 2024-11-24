@@ -8,7 +8,8 @@ Vi povas skani kaj aldoni ciuj dosieroj (bildoj, dokumentoj, kaj tiel plu) kaj k
 rekoni la tekston (OSR), konverti en kvarkolora (CFMN), aldoni pasvorton;
 sendu al loka dosierujo, retservilo (SMB), aû interreta servilo (FTP, SFTP) kaj samtempe sendi retpoŝte.
 
-Estas nuntempe traduktita en 3 langvoj: Esperanto, Deutsch, Italiano.
+Estas nuntempe traduktita en 4 langvoj: Esperanto, Deutsch, Español, Italiano.
+(mi bedaŭras pro la gramatikaj eraroj)
 Estas traduktebla en ĉiuj lingvoj.
 
 OPERACIUMO:
@@ -18,7 +19,7 @@ a) INSTALADO uzante nur la dokumenton "PDF ĉiofarilo"
 La unika necesa dosiero estas "PDF ĉiofarilo".
 
 1) Movi PDF ĉiofarilo al la dosierujo "scripts" de Nautilus aŭ Nemo. Eksample:
-~/.local/share/nemo/scripts
+~/.local/share/nemo/scripts/
 2) Ebligi ekzekutajn permesojn
 
 Je la unua ekfunkciigo, ĝi demandas al vi la lingvon kaj poste kontrolas la necesajn programojn kaj ĝi provas instali ilin.
@@ -28,8 +29,7 @@ b) INSTALADO uzante la ZIP-dosieron
 La ZIP-dosiero havas ĉiujn la necesajn dosierojn. Vi ne devos elŝuti ion ajn el la retejo nikajnun.org
 
 
-La programa versio estas 0.1 Beta.
-erŝajne estas ankoraŭ multaj eraroj.
+La aktuala versio estas 0.02
 
 
 DEPENDENCOJ (necesaj pakajoj):
@@ -41,12 +41,11 @@ DEPENDENCOJ (necesaj pakajoj):
 - pdftk
 - wmctrl
 
-  Mi ne parolas la anglan lingvon. Mi bedauras.
 
   
 ![tablo de la informoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/info.png)
 ![listo de la dosieroj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/dosieroj.png)
-![tablo aldonado dosierojn per treni kaj fali](https://nikajnun.org/pdf-ĉiofarilo/aldoni.png)
+![tablo aldonado dosierojn](https://nikajnun.org/pdf-ĉiofarilo/aldoni.png)
 ![tablo skanado](https://nikajnun.org/pdf-ĉiofarilo/bildoj/skani.png)
 ![tablo manipulado](https://nikajnun.org/pdf-ĉiofarilo/bildoj/manipulado.png)
 ![elekti OSR linvopakaĵoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/manipulado-OSR.png)
