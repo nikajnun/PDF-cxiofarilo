@@ -46,7 +46,7 @@ DEPENDENCOJ (necesaj pakajoj):
   
 ![tablo de la informoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/info.png)
 ![listo de la dosieroj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/dosieroj.png)
-![tablo aldonado dosierojn per treni kaj fali](https://nikajnun.org/pdf-ĉiofarilo/aldoni/info.png)
+![tablo aldonado dosierojn per treni kaj fali](https://nikajnun.org/pdf-ĉiofarilo/aldoni/aldoni.png)
 ![tablo skanado](https://nikajnun.org/pdf-ĉiofarilo/bildoj/skani.png)
 ![tablo manipulado](https://nikajnun.org/pdf-ĉiofarilo/bildoj/manipulado.png)
 ![elekti OSR linvopakaĵoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/manipulado-OSR.png)
