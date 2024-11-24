@@ -44,4 +44,4 @@ DEPENDENCOJ (necesaj pakajoj):
   Mi ne parolas la anglan lingvon. Mi bedauras.
 
   
-![tablo de la informoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/PDF ĉiofarilo-info.png)
+![tablo de la informoj](https://nikajnun.org/pdf-ĉiofarilo/bildoj/info.png)
