@@ -5,7 +5,7 @@ export versio="0.02";
 # ▁▍ pakaĵoj necesaj (komenco) ▐▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 function necesu(){ . "$tekstbazo" ;
 # { modifieblaj parametroj ----------------------------------------------------------
-pkj=("yad" "sane-utils" "libreoffice" "ocrmypdf" "pdftk" "wmctrl"); # listo de la necesaj pajaĵoj
+pkj=("yad" "sane-utils" "libreoffice-core" "ocrmypdf" "pdftk" "wmctrl"); # listo de la necesaj pajaĵoj
 pvj=("0" "0" "0" "0" "0" "0"); # la minimuma versio de ĉiu pakaĵo; ekzemple: "10" | "10.5" | "10.14.8" | "0" se ne neceas minimuman version
 psj=("$T_necesaj_yad" "$T_necesaj_sane_utils" "$T_necesaj_libreoffice" "$T_necesaj_ocrmypdf" "$T_necesaj_pdftk" "$T_necesaj_wmctrl"); # priskribo por klarigi por kio necesas la pakajo (nedeviga) | nenia klarigo: ""
 # } ----------------------------------------------------------
